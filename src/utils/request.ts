@@ -8,7 +8,7 @@ const request = axios.create({
 
 // 请求拦截器：发送请求前，自动把本地存的 token 塞进去
 request.interceptors.request.use((config) => {
-  const token = localStorage.getItem('trip_token');
+  const token = sessionStorage.getItem('trip_token');
   if (token && config.headers) {
     config.headers['Authorization'] = token;
   }
