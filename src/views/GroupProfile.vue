@@ -4,12 +4,11 @@
       <template #header>
         <div class="card-header">
           <h3>👥 小组团队概况</h3>
-          <el-tag type="success" effect="dark">CitySync 项目组</el-tag>
+          <el-tag type="success" effect="dark">期末课程设计项目</el-tag>
         </div>
       </template>
       <p class="intro-text">
-        我们是华南师范大学数据科学与工程学院的课程项目攻坚小组。团队致力于将前沿的深度学习算法与现代 Web 框架相结合。
-        我们的主打项目“CitySync”集成了智能旅行规划与同步能力，目前已完成核心功能迭代。
+        我们是来自华南师范大学数据科学与工程学院的五人学习小组。作为本学期的期末课程设计大作业，我们从零到一合作开发了这款名为“CitySync”的 AI 智能旅行规划系统。本项目旨在综合运用课堂上学到的全栈开发技术与 AI 知识，通过经历需求分析、系统设计到代码测试的完整开发生命周期，切实锻炼并展示我们在专业领域的动手实践与团队协作能力。
       </p>
     </el-card>
 
@@ -17,7 +16,7 @@
     <el-row :gutter="20">
       <el-col :span="8" v-for="(member, index) in members" :key="index">
         <el-card shadow="always" class="member-card">
-          <el-avatar :size="90" :src="member.avatar" style="font-size: 30px; background: #ecf5ff; color: #409EFF;">
+          <el-avatar :size="90" style="font-size: 30px; background: #ecf5ff; color: #409EFF;">
             {{ member.name.charAt(0) }}
           </el-avatar>
           <h3 class="member-name">{{ member.name }} <el-tag size="small" type="danger" v-if="member.isLeader">组长</el-tag></h3>
@@ -106,7 +105,7 @@ const openProfile = (member: any) => {
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .card-header h3 { margin: 0; }
 .intro-text { line-height: 1.8; color: #606266; font-size: 15px; }
-.member-card { text-align: center; border-radius: 12px; transition: transform 0.3s; }
+.member-card { text-align: center; border-radius: 12px; transition: transform 0.3s; margin-bottom: 20px; }
 .member-card:hover { transform: translateY(-5px); }
 .member-name { margin: 15px 0 5px 0; color: #303133; }
 .member-role { color: #909399; font-size: 14px; margin-bottom: 15px; }
