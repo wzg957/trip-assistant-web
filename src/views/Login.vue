@@ -89,7 +89,7 @@ const sendCode = async () => {
   }
 
   try {
-    await request.post('/api/auth/code', { email: loginForm.email })
+    await request.post('/api/auth/send-code', { email: loginForm.email })
     ElMessage.success('验证码已发送至您的邮箱，请查收')
 
     // 开启倒计时
