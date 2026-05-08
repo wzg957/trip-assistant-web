@@ -37,7 +37,7 @@
           <el-avatar size="small" style="background-color: #409EFF;">{{ currentUser.charAt(0) }}</el-avatar>
           <span class="user-name">欢迎您，{{ currentUser }}</span>
           <el-button type="danger" plain size="small" @click="handleLogout">
-            <el-icon><SwitchButton /></el-icon> 注销
+            <el-icon><SwitchButton /></el-icon> 退出登录
           </el-button>
         </div>
       </el-header>
@@ -77,7 +77,7 @@ onMounted(() => {
 })
 
 const handleLogout = () => {
-  ElMessageBox.confirm('确定要注销并退出当前账号吗？', '系统提示', {
+  ElMessageBox.confirm('确定要退出当前账号吗？', '系统提示', {
     confirmButtonText: '确定退出',
     cancelButtonText: '取消',
     type: 'warning',
