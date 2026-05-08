@@ -3,7 +3,7 @@
     <el-card class="login-card" shadow="always">
       <div class="login-header">
         <img src="../assets/vue.svg" alt="logo" class="logo" />
-        <h2 class="title">CitySync 课程项目系统</h2>
+        <h2 class="title">CitySync · AI 智能旅行助手</h2>
         <p class="subtitle">请使用邮箱验证码登录系统</p>
       </div>
 
@@ -11,7 +11,7 @@
         <el-form-item prop="email">
           <el-input
             v-model="loginForm.email"
-            placeholder="请输入电子邮箱 (用户名)"
+            placeholder="请输入电子邮箱 "
             prefix-icon="Message"
           />
         </el-form-item>
@@ -123,7 +123,7 @@ const handleLogin = async () => {
           sessionStorage.setItem('trip_token', 'dev-backdoor-token-12345')
           sessionStorage.setItem('user_info', JSON.stringify({
             email: 'admin@citysync.com',
-            name: '汪组长 (后门模式)'
+            name: '汪泽高 (后门模式)'
           }))
           ElMessage.success('🚀 已触发开发者后门，免密登入系统！')
           router.push('/home')
@@ -133,17 +133,22 @@ const handleLogin = async () => {
         return // 🌟 极其关键：触发后门后直接 return，不再往下执行真实的后端请求！
       }
 
-      // 👇 下面是你原本的真实后端请求逻辑（保持不变）
+      // 👇 真实后端请求逻辑
       try {
         const res: any = await request.post('/api/auth/login', {
           email: loginForm.email,
           code: loginForm.code
         })
 
+        // 提取邮箱 @ 前面的字符作为默认用户名
+        const defaultName = loginForm.email.split('@')[0]
+
         sessionStorage.setItem('trip_token', res.data.token)
         sessionStorage.setItem('user_info', JSON.stringify({
           email: loginForm.email,
-          name: '汪同学'
+          // 如果你的后端 res.data 里传回了真实的昵称，可以写 res.data.userName || defaultName
+          // 现在按照你的要求，直接显示邮箱前缀
+          name: defaultName
         }))
 
         ElMessage.success('登录成功')
