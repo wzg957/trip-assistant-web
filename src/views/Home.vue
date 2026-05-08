@@ -1,214 +1,320 @@
 <template>
-  <div class="home-wrapper">
-    <div class="action-bar">
-      <el-button type="primary" size="large" @click="drawerVisible = true">
-        <el-icon><FolderOpened /></el-icon> 📂 我的历史行程
+  <div class="home-container">
+    <div class="header-actions">
+      <h2>🌍 CitySync 智能行程规划</h2>
+      <el-button type="primary" :icon="FolderOpened" plain @click="drawerVisible = true">
+        查看历史记录
       </el-button>
     </div>
 
-    <el-row :gutter="24">
-      <el-col :span="9">
-        <el-card class="box-card form-card" shadow="hover">
+    <el-row :gutter="20" class="main-content">
+      <el-col :span="8">
+        <el-card shadow="hover" class="form-card">
           <template #header>
             <div class="card-header">
-              <span class="header-title">✈️ 规划新行程</span>
+              <span>✈️ 定制你的专属旅程</span>
             </div>
           </template>
 
-          <el-form :model="tripForm" label-position="top" size="large">
-            <el-form-item label="📍 目的地">
-              <el-input
-                v-model="tripForm.destination"
-                placeholder="如：成都、新疆、吉隆坡..."
-                clearable
-              />
+          <el-form :model="tripForm" label-position="top">
+            <el-form-item label="📍 目的地城市" required>
+              <el-input v-model="tripForm.destination" placeholder="例如：成都、上海、东京" clearable />
             </el-form-item>
 
             <el-form-item label="📅 游玩天数">
               <el-input-number v-model="tripForm.days" :min="1" :max="15" style="width: 100%;" />
             </el-form-item>
 
-            <el-form-item label="💰 预算范围">
-              <el-select v-model="tripForm.budget" placeholder="请选择预算水平" style="width: 100%;">
-                <el-option label="🎒 穷游 (追求性价比)" value="low" />
-                <el-option label="🏨 舒适 (品质出行)" value="mid" />
-                <el-option label="💎 奢华 (极致享受)" value="high" />
-              </el-select>
+            <el-form-item label="💰 旅行总预算 (元)">
+              <el-input-number 
+                v-model="tripForm.budget" 
+                :min="500" 
+                :step="500" 
+                style="width: 100%;" 
+                controls-position="right"
+              />
             </el-form-item>
 
-            <el-form-item label="🏃 旅行风格">
-              <el-select v-model="tripForm.preference" placeholder="请选择旅行风格" style="width: 100%;">
-                <el-option label="特种兵打卡" value="fast" />
-                <el-option label="休闲度假" value="relax" />
-                <el-option label="自然风光" value="nature" />
-                <el-option label="人文历史" value="culture" />
-              </el-select>
+            <el-form-item label="🏃 行程节奏偏好">
+              <el-radio-group v-model="tripForm.preference">
+                <el-radio-button label="fast">特种兵打卡</el-radio-button>
+                <el-radio-button label="relaxed">休闲度假</el-radio-button>
+              </el-radio-group>
             </el-form-item>
 
-            <el-form-item style="margin-top: 20px;">
-              <el-button
-                type="primary"
-                class="generate-btn"
-                :loading="loading"
-                @click="generateTrip"
-              >
-                {{ loading ? 'AI 正在调用后端 Agent 规划中...' : '✨ 立即生成专属行程' }}
-              </el-button>
-            </el-form-item>
+            <el-button 
+              type="primary" 
+              size="large" 
+              style="width: 100%; margin-top: 10px;" 
+              @click="generateTrip"
+              :loading="loading"
+            >
+              {{ loading ? loadingText : '✨ 立即生成 AI 行程' }}
+            </el-button>
           </el-form>
         </el-card>
       </el-col>
 
-      <el-col :span="15">
-        <el-card
-          class="box-card result-card"
-          shadow="always"
-          style="min-height: 600px;"
-          v-loading="loading"
-          element-loading-text="AI 正在疯狂燃烧 GPU 规划行程中..."
-        >
-          <template #header>
-            <div class="result-header">
-              <span class="header-title">🗺️ AI 规划结果</span>
-              <el-tag v-if="showResult" type="success" effect="dark">生成成功</el-tag>
-            </div>
-          </template>
-
+      <el-col :span="16">
+        <el-card shadow="hover" class="result-card" v-loading="loading" :element-loading-text="loadingText">
           <div v-if="!showResult && !loading" class="empty-state">
-            <div class="empty-icon">👈</div>
-            <p>在左侧输入你的旅行愿望，AI 将为你实时规划</p>
+            <el-empty description="在左侧输入需求，AI Agent 将为您量身定制行程" />
           </div>
 
-          <el-timeline v-if="showResult" style="margin-top: 20px;">
-            <el-timeline-item
-              v-for="(day, index) in mockPlan"
-              :key="index"
-              :timestamp="'第 ' + (index + 1) + ' 天'"
-              placement="top"
-              type="primary"
-              size="large"
-            >
-              <el-card shadow="hover" class="day-detail-card">
-                <div class="day-title-row">
-                  <h4>{{ day.title }}</h4>
-                  <el-tag size="small" type="warning">推荐方案</el-tag>
-                </div>
-                <p class="plan-content">{{ day.content }}</p>
-                <div class="plan-tags">
-                  <el-tag v-for="tag in day.tags" :key="tag" size="small" type="info" class="m-r-5">
-                    {{ tag }}
-                  </el-tag>
-                </div>
-              </el-card>
-            </el-timeline-item>
-          </el-timeline>
+          <div v-if="showResult" class="trip-result">
+            <div class="result-header">
+              <h3>🎉 {{ tripForm.destination }} {{ tripForm.days }}日游专属行程</h3>
+              <el-tag type="success" effect="dark">预算: ¥{{ tripForm.budget }}</el-tag>
+            </div>
+
+            <el-divider />
+
+            <div class="result-body">
+              <p v-if="mockPlan.accommodation"><strong>🏨 推荐住宿：</strong>{{ mockPlan.accommodation }}</p>
+              <p v-if="mockPlan.transportation"><strong>🚗 交通建议：</strong>{{ mockPlan.transportation }}</p>
+              
+              <div class="plan-details">
+                <h4>📜 详细日程安排：</h4>
+                <pre>{{ mockPlan.planDetails || mockPlan.itinerary || '暂无详细排版内容' }}</pre>
+              </div>
+            </div>
+          </div>
         </el-card>
       </el-col>
     </el-row>
 
     <el-drawer
       v-model="drawerVisible"
-      title="📂 我的历史行程 (Database Records)"
+      title="📂 历史行程记录"
       direction="rtl"
-      size="35%"
+      size="30%"
     >
-      <el-alert
-        title="提示：此处展示的是从 MySQL 数据库中检索出的历史记录"
-        type="success"
-        :closable="false"
-        style="margin-bottom: 20px;"
-      />
-
-      <div v-for="item in historyPlans" :key="item.id" class="history-card">
-        <el-card shadow="hover" @click="loadHistory(item)">
-          <div class="history-header">
-            <strong>{{ item.dest }} {{ item.days }}日游</strong>
-            <el-tag size="small">{{ item.time }}</el-tag>
-          </div>
-          <p class="history-meta">预算：{{ item.budget }} | 风格：{{ item.pref }}</p>
-        </el-card>
+      <div v-if="historyPlans.length === 0">
+        <el-empty description="暂无历史记录" />
       </div>
+      
+      <el-timeline v-else style="padding-left: 10px; padding-top: 20px;">
+        <el-timeline-item 
+          v-for="(item, index) in historyPlans" 
+          :key="index"
+          :timestamp="item.createdAt || '历史时间'" 
+          placement="top"
+          type="primary"
+        >
+          <el-card shadow="hover" class="history-item" @click="loadHistory(item)">
+            <h4>{{ item.city }} {{ item.days ? item.days.length : 3 }}日游</h4>
+            <p>预算：¥{{ item.budget }}</p>
+            <div style="margin-top: 10px; text-align: right;">
+              <el-button type="primary" link size="small">加载此行程 >></el-button>
+            </div>
+          </el-card>
+        </el-timeline-item>
+      </el-timeline>
     </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { FolderOpened } from '@element-plus/icons-vue'
+// 🌟 修复路径：确保退回上一级
+import request from '../utils/request' 
 
+// 状态控制
 const loading = ref(false)
 const showResult = ref(false)
 const drawerVisible = ref(false)
+const loadingText = ref('AI 正在分配专属 Agent 接收任务...')
 
+// 前端表单数据
 const tripForm = reactive({
   destination: '',
   days: 3,
-  budget: '',
-  preference: ''
+  budget: 5000, 
+  preference: 'fast'
 })
 
-const historyPlans = ref([
-  { id: 1, dest: '成都', days: 3, budget: '穷游', pref: '特种兵', time: '2026-05-01' },
-  { id: 2, dest: '吉隆坡', days: 5, budget: '舒适', pref: '休闲', time: '2026-04-20' }
-])
+// 结果与历史数据
+const historyPlans = ref<any>([])
+const mockPlan = ref<any>({}) 
+let pollTimer: any = null
 
-const mockPlan = ref([
-  {
-    title: '城市探索与风味美食',
-    content: '抵达后入住精品酒店。首日安排前往城市地标进行Citywalk，晚餐享用当地最具代表性的特色料理。',
-    tags: ['顺利抵达', 'Citywalk', '地道小吃']
-  },
-  {
-    title: '核心景区深度游览',
-    content: '全天游览目的地最负盛名的自然或人文景观。建议提前预约，中午在景区周边尝试非遗美食。',
-    tags: ['网红打卡', '历史人文', '摄影推荐']
-  },
-  {
-    title: '闲暇时光与愉悦返程',
-    content: '上午在当地特色集市挑选精美伴手礼。午餐后稍作休息，随后前往交通枢纽，圆满结束旅程。',
-    tags: ['选购特产', '轻松慢行', '期待重逢']
+onMounted(() => {
+  fetchHistory()
+})
+
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer)
+})
+
+// ================= 1. 获取历史记录 =================
+const fetchHistory = async () => {
+  try {
+    const res: any = await request.get('/api/agent/trip/plans', {
+      params: { page: 1, size: 20 }
+    })
+    historyPlans.value = res.data || []
+  } catch (error) {
+    console.error('获取历史记录失败', error)
   }
-])
-
-const generateTrip = () => {
-  if (!tripForm.destination || !tripForm.budget) {
-    ElMessage.warning('请至少填写目的地和预算，以便 AI 规划')
-    return
-  }
-  loading.value = true
-  showResult.value = false
-
-  // 模拟请求后端的延迟感
-  setTimeout(() => {
-    loading.value = false
-    showResult.value = true
-    ElMessage.success('🎉 您的专属行程已从数据库同步并展示！')
-  }, 1800)
 }
 
+// 辅助：日期格式化 (YYYY-MM-DD)
+const formatDate = (date: Date) => {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+// ================= 2. 核心 AI 规划 (Kafka 异步轮询) =================
+const generateTrip = async () => {
+  if (!tripForm.destination) {
+    return ElMessage.warning('请输入目的地城市')
+  }
+  
+  loading.value = true
+  showResult.value = false
+  loadingText.value = '正在将需求提交至消息队列...'
+
+  // 推算日期
+  const startDate = new Date()
+  const endDate = new Date()
+  endDate.setDate(startDate.getDate() + tripForm.days - 1) 
+
+  try {
+    // 步骤 A: 提交任务
+    const submitRes: any = await request.post('/api/agent/trip/submit', {
+      city: tripForm.destination,                
+      start_date: formatDate(startDate),         
+      end_date: formatDate(endDate),             
+      budget: tripForm.budget, // 直接传数字                    
+      preference: tripForm.preference,           
+      accommodation: '', 
+      transportation: '',
+      user_input: '' 
+    })
+
+    const requestId = submitRes.data 
+    if (!requestId) throw new Error('未能获取到任务队列排队号')
+
+    // 步骤 B: 开启轮询
+    loadingText.value = 'Agent 正在为您检索酒店、景点与天气信息...'
+    
+    pollTimer = setInterval(async () => {
+      try {
+        const queryRes: any = await request.get(`/api/agent/trip/query`, {
+          params: { requestId: requestId }
+        })
+        
+        const responseData = queryRes.data
+
+        // 判断后端处理状态
+        if (responseData.status === 'COMPLETED' || responseData.status === 'SUCCESS') { 
+          clearInterval(pollTimer) 
+          
+          mockPlan.value = responseData.tripPlan 
+          showResult.value = true
+          loading.value = false
+          ElMessage.success('🎉 您的专属行程已生成完毕！')
+          
+          fetchHistory() // 刷新抽屉列表
+          
+        } else if (responseData.status === 'FAILED' || responseData.status === 'ERROR') {
+          clearInterval(pollTimer) 
+          loading.value = false
+          ElMessage.error(responseData.errorMessage || 'AI规划因网络或算法原因失败')
+        }
+        
+      } catch (e) {
+        clearInterval(pollTimer)
+        loading.value = false
+        ElMessage.error('查询生成进度时发生网络异常')
+      }
+    }, 3000) // 3秒轮询
+
+  } catch (error: any) {
+    loading.value = false
+    ElMessage.error(error.message || '向服务器提交行程任务失败')
+  }
+}
+
+// ================= 3. 加载历史记录 =================
 const loadHistory = (item: any) => {
-  tripForm.destination = item.dest
-  tripForm.days = item.days
-  ElMessage.info(`已加载 ${item.dest} 的历史记录`)
+  tripForm.destination = item.city 
+  tripForm.days = item.days ? item.days.length : 3
+  tripForm.budget = item.budget || 5000 
+  
+  mockPlan.value = item 
+  showResult.value = true
+  ElMessage.info(`已加载 ${item.city} 的行程记录`)
   drawerVisible.value = false
 }
 </script>
 
 <style scoped>
-.home-wrapper { padding: 5px; }
-.action-bar { margin-bottom: 20px; text-align: right; }
-.header-title { font-size: 18px; font-weight: 600; color: #303133; }
-.generate-btn { width: 100%; height: 50px; font-size: 16px; border-radius: 8px; font-weight: bold; }
-.result-header { display: flex; justify-content: space-between; align-items: center; }
-.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px; color: #909399; }
-.empty-icon { font-size: 60px; margin-bottom: 20px; }
-.day-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.day-title-row h4 { margin: 0; color: #409EFF; }
-.plan-content { color: #606266; line-height: 1.7; font-size: 14px; }
-.plan-tags { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ebeef5; }
-.m-r-5 { margin-right: 8px; }
-.history-card { margin-bottom: 15px; cursor: pointer; }
-.history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.history-meta { font-size: 12px; color: #909399; margin: 0; }
+.home-container {
+  padding: 20px;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-actions h2 {
+  margin: 0;
+  color: #303133;
+}
+
+.form-card, .result-card {
+  min-height: 550px;
+  border-radius: 8px;
+}
+
+.card-header {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.result-header h3 {
+  margin: 0;
+  color: #409EFF;
+}
+
+.plan-details pre {
+  background-color: #f5f7fa;
+  padding: 15px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.history-item {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.history-item:hover {
+  transform: translateY(-2px);
+  border-color: #409EFF;
+}
 </style>
