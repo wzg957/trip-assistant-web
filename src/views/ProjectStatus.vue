@@ -16,9 +16,9 @@
             size="large"
           >
             <el-card shadow="hover">
-              <h4>需求分析与数据准备</h4>
+              <h4>需求分析与原型设计</h4>
               <p class="timeline-desc">
-                确立 CitySync 项目愿景，开始筹备前期工作。期间针对无人机视角下的小目标检测难点，完成了 VisDrone 数据集的全面调研与预处理。
+                确立 CitySync 项目愿景，完成系统需求规格说明书与整体架构选型。期间绘制了系统的 UI 交互原型，并完成了 MySQL 数据库的核心表结构设计。
               </p>
             </el-card>
           </el-timeline-item>
@@ -30,9 +30,9 @@
             size="large"
           >
             <el-card shadow="hover">
-              <h4>核心算法与后端搭建</h4>
+              <h4>后端架构与 AI Agent 搭建</h4>
               <p class="timeline-desc">
-                基于改进的 DETR 架构完成了小目标检测模型训练，进入学术成果梳理阶段。同步完成了 Java 后端基础设施（MySQL, Redis, Kafka）的容器化部署与接口设计。
+                采用 Spring Boot 构建核心后端服务，创新性地引入 Kafka 消息队列解耦高并发任务。同步完成了 Python 端多 Agent（酒店、天气、行程规划）的开发与高德地图 API 的接入。
               </p>
             </el-card>
           </el-timeline-item>
@@ -46,7 +46,7 @@
             <el-card shadow="hover" style="border-left: 4px solid #67C23A;">
               <h4 style="color: #67C23A;">系统前端与业务联调 (当前阶段)</h4>
               <p class="timeline-desc">
-                全面开展 Web 应用的开发。严格按照课程要求，实现了安全的 Session 身份校验、拦截器机制，并落地了 AI 行程规划的交互界面与历史记录模块。
+                全面开展 Web 应用的开发。严格按照课程要求，实现了安全的 Session 身份校验、路由拦截器机制，并落地了 AI 行程规划的交互界面与历史记录模块的前后端数据联调。
               </p>
             </el-card>
           </el-timeline-item>
@@ -60,7 +60,7 @@
             <el-card shadow="hover">
               <h4>系统部署与汇报总结</h4>
               <p class="timeline-desc">
-                计划完成前后端生产环境部署（Nginx反向代理）。进行全链路压力测试，并准备项目答辩所需的演示视频与最终技术文档报告。
+                计划完成前后端生产环境的 Nginx 反向代理部署。进行全链路压力测试与 Bug 修复，并准备项目答辩所需的演示视频与最终《项目设计报告》。
               </p>
             </el-card>
           </el-timeline-item>
