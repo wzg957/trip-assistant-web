@@ -73,7 +73,7 @@
             <div class="result-header">
               <h3>{{ mockPlan.city }} 行程规划方案</h3>
               <div class="header-tags">
-                <el-tag type="success">¥{{ mockPlan.budget }}</el-tag>
+                <el-tag type="success">¥{{ mockPlan.budget?.total || mockPlan.budget }}</el-tag>
                 <el-tag type="info" style="margin-left: 10px;">{{ mockPlan.start_date }} / {{ mockPlan.end_date }}</el-tag>
               </div>
             </div>
@@ -82,19 +82,45 @@
 
             <div class="content-scroll">
               <div class="info-item">
-                <span class="label">🏨 推荐下榻：</span>
-                <span class="text">{{ mockPlan.accommodation || '正在智能匹配酒店...' }}</span>
-              </div>
-
-              <div class="info-item">
-                <span class="label">🚗 交通建议：</span>
-                <span class="text">{{ mockPlan.transportation || '正在计算最优路径...' }}</span>
+                <span class="label">💡 综合建议：</span>
+                <span class="text">{{ mockPlan.overall_suggestions || '无' }}</span>
               </div>
 
               <div class="detail-section">
                 <h4>📋 详细日程编排</h4>
                 <div class="itinerary-box">
-                  <pre>{{ mockPlan.planDetails || '暂无排版详情' }}</pre>
+                  <div v-if="mockPlan.days && mockPlan.days.length > 0">
+                    <div v-for="day in mockPlan.days" :key="day.day_index" style="margin-bottom: 25px; border-bottom: 1px dashed #ebeef5; padding-bottom: 15px;">
+                      <h5 style="color: #409eff; font-size: 16px; margin-bottom: 10px;">
+                        Day {{ day.day_index + 1 }} : {{ day.date }} - {{ day.description }}
+                      </h5>
+                      <p style="margin: 5px 0;"><strong>🚕 交通：</strong>{{ day.transportation }}</p>
+                      <p style="margin: 5px 0;"><strong>🏨 住宿：</strong>{{ day.accommodation }} <span v-if="day.hotel" style="color: #909399;">({{ day.hotel.name }})</span></p>
+
+                      <div v-if="day.attractions && day.attractions.length > 0" style="margin-top: 10px;">
+                        <strong>🚩 景点安排：</strong>
+                        <ul style="padding-left: 20px; margin-top: 5px;">
+                          <li v-for="attr in day.attractions" :key="attr.name" style="margin-bottom: 8px;">
+                            <span style="font-weight: bold;">{{ attr.name }}</span>
+                            <el-tag size="small" type="warning" style="margin-left: 8px;">游玩约 {{ attr.visit_duration }} 分钟</el-tag>
+                            <div style="font-size: 13px; color: #606266; margin-top: 3px;">{{ attr.description }}</div>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div v-if="day.meals && day.meals.length > 0" style="margin-top: 10px;">
+                        <strong>🍲 餐饮推荐：</strong>
+                        <ul style="padding-left: 20px; margin-top: 5px;">
+                          <li v-for="meal in day.meals" :key="meal.name" style="margin-bottom: 8px;">
+                            <span style="font-weight: bold;">{{ meal.name }}</span> ({{ meal.type === 'lunch' ? '午餐' : '晚餐' }}) - 预估 ¥{{ meal.estimated_cost }}
+                            <div style="font-size: 13px; color: #606266; margin-top: 3px;">{{ meal.description }}</div>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <pre v-else>{{ mockPlan.planDetails || '暂无排版详情' }}</pre>
                 </div>
               </div>
             </div>
@@ -215,7 +241,13 @@ const handleGenerate = async () => {
 
         if (responseData.status === 'COMPLETED' || responseData.status === 'SUCCESS') {
           clearInterval(pollTimer) // 停止轮询
-          mockPlan.value = responseData.tripPlan // 提取生成的 TripPlan 实体
+          
+          // 加上 || {}，确保就算拿不到数据，mockPlan 也是个空对象，模板渲染不会报 Cannot read properties of undefined
+          const planData = responseData.tripPlan || {};
+          const parsedPlan = Array.isArray(planData) ? (planData[0] || {}) : planData;
+
+          mockPlan.value = parsedPlan;
+
           showResult.value = true
           loading.value = false
           ElMessage.success('🎉 AI 行程规划已完成！')
@@ -242,7 +274,10 @@ const handleGenerate = async () => {
 const loadHistoryPlan = (plan: any) => {
   mockPlan.value = plan
   tripForm.city = plan.city
-  tripForm.budget = plan.budget
+
+  // 💥 修复：兼容旧版数字和新版对象的取值方式
+  tripForm.budget = plan.budget?.total || plan.budget || 5000
+
   tripDateRange.value = [plan.start_date, plan.end_date]
   showResult.value = true
   drawerVisible.value = false
